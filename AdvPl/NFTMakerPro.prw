@@ -12,12 +12,13 @@ Class NFTMakerPro
     Data projectId As String
     Data endPoint  As String
     Data apiKey    As String
-    Data fileEnv   As String
+    Data fileCfg   As String
     
-    Method New( cFileEnv, cProjectId )
+    Method New( cfileCfg, cProjectId )
     
     Method LoadEnv()
     Method UploadNFT( cFile, aSubFiles )
+    Method GetNftDetails( cNftName )
 
 EndClass
 
@@ -26,15 +27,16 @@ EndClass
     @author DS2U (SDA)
     @since 27/05/2022
     @version 1.0.0
+    @param cfileCfg, Char, Caminho absoluto do arquivo .env
     @param cProjectId, Char, ID do Projeto
     @return SELF, object, Objeto instanciado da classe NFTMakerPro
     /*/
-Method New( cFileEnv, cProjectId ) CLASS NFTMakerPro
+Method New( cfileCfg, cProjectId ) CLASS NFTMakerPro
 
-    Default cFileEnv   := ""
+    Default cfileCfg   := ""
     Default cProjectId := ""
 
-    ::fileEnv   := cFileEnv
+    ::fileCfg   := cfileCfg
     ::projectId := cProjectId
     ::loadEnv()
 
@@ -59,9 +61,9 @@ Local nPos
 Local cMsgErro := ""
 Local nHandle As Numeric
 
-If ( File( ::fileEnv ) )
+If ( File( ::fileCfg ) )
 
-    nHandle := fOpen( ::fileEnv )
+    nHandle := fOpen( ::fileCfg )
 
     If nHandle == -1
         MsgStop('Erro de abertura : FERROR '+str(ferror(),4))
@@ -98,11 +100,11 @@ If ( File( ::fileEnv ) )
     fClose(nHandle) // Fecha arquivo
         
 Else
-    FwMsgAlert("Arquivo .env não encontrado!")
+    Alert("Arquivo .env não encontrado!")
 EndIf
 
 If ( !Empty( cMsgErro ) )
-    FwMsgAlert(cMsgErro)
+    Alert(cMsgErro)
 EndIf
 
 Return SELF
@@ -186,6 +188,51 @@ Else
 EndIf
 
 Return
+
+/*/{Protheus.doc} GetNftDetails
+    Metodo para buscar detalhes do NFT dado o nome do NFT
+    @author DS2U (SDA)
+    @since 04/06/2022
+    @version 1.0.0
+    @param cNftName, Char, Nome do arquivo NFT
+    @return SELF, object, Objeto instanciado da classe NFTMakerPro
+    /*/
+Method GetNftDetails( cNftName ) CLASS NFTMakerPro
+
+Local oRest     As Object
+Local aHeader   := {}
+Local cError    As String
+Local nStatus   As Numeric
+
+AADD( aHeader, "Content-Type: application/json" )
+
+// Realiza o POST para upload da NFT
+oRest := FWRest():New( ::endPoint )
+oRest:SetPath( "/GetNftDetails/" + ::apiKey + "/" + ::projectId + "/" + cNftName )
+oRest:SetChkStatus(.F.)
+
+If ( oRest:Get( aHeader ) )
+
+    cError := ""
+    nStatus := HTTPGetStatus(@cError)
+
+    If ( nStatus >= 200 .And. nStatus <= 299 )
+
+        If ( Empty( oRest:getResult() ) )
+            MsgInfo(nStatus)
+        Else
+            MsgInfo(oRest:getResult())
+        EndIf
+
+    Else
+        MsgStop(oRest:getLastError() + CRLF + oRest:getResult())
+    EndIf
+
+Else
+    MsgStop(oRest:getLastError() + CRLF + oRest:getResult())
+EndIf
+
+Return SELF
 
 /*/{Protheus.doc} GetType
     (long_description)
