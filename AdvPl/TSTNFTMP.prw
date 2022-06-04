@@ -9,15 +9,18 @@ User Function TSTNFTMP()
 
 Local cfileCfg   := "D:\git\SDKs-NFT-Maker-PRO\AdvPl\.env"
 Local cProjectID := "36326"
-Local cFileImg   := "C:\Users\sergi\OneDrive\1.DS2U\1_Contas\CrypTechArt\_Projetos\Plataforma NFT\Arquivos\Amostragem\Assets\1_Guitar\I\1.png"
-Local cFileAudio := "C:\Users\sergi\OneDrive\1.DS2U\1_Contas\CrypTechArt\_Projetos\Plataforma NFT\Arquivos\Amostragem\Assets\1_Guitar\A\1.mp3"
+Local cFileImg   := "C:\Users\sergi\OneDrive\1.DS2U\1_Contas\CrypTechArt\_Projetos\Plataforma NFT\Arquivos\Amostragem\Assets\1_Guitar\I\2.png"
+Local cFileAudio := "C:\Users\sergi\OneDrive\1.DS2U\1_Contas\CrypTechArt\_Projetos\Plataforma NFT\Arquivos\Amostragem\Assets\1_Guitar\A\2.mp3"
 Local aSubFiles  := {}
+Local aMetaData  := {}
 Local oNft       As Object
 
 AADD( aSubFiles, cFileAudio )
 
+AADD( aMetaData, { "color", "black" } )
+AADD( aMetaData, { "teste", "addTeste" } )
+
 oNft := NFTMakerPro():New( cfileCfg, cProjectID )
-//oNft:UploadNFT( cFileImg, aSubFiles )
-oNft:GetNftDetails( "NFT1" )
+oNft:UploadNFT( cFileImg, aSubFiles, aMetaData )
 
 Return 

@@ -19,6 +19,8 @@ Class NFTMakerPro
     Method LoadEnv()
     Method UploadNFT( cFile, aSubFiles )
     Method GetNftDetails( cNftName )
+    Method GetNftById( cNftId )
+    Method UpMetaData( oNFT )
 
 EndClass
 
@@ -115,15 +117,19 @@ Return SELF
     @author DS2U (SDA)
     @since 27/05/2022
     @version 1.0.0
+    @param cFile, Char, Caminho absoluto do arquivo .env
+    @param aSubFiles, Array, Array de arquivos que serão anexados ao arquivo nft
+    @param aMetadata, Array, Array de atributos que serão alterados / incluidos no arquivo metadadata do nft
     @return SELF, object, Objeto instanciado da classe NFTMakerPro
     @see https://api.nft-maker.io/swagger/index.html - UploadNft
 /*/
-Method UploadNFT( cFile, aSubFiles ) CLASS NFTMakerPro
+Method UploadNFT( cFile, aSubFiles, aMetaData ) CLASS NFTMakerPro
 
 Local oRest     As Object
 Local oBody     As Object
 Local oPreview  As Object
 Local oSubFiles As Object
+Local oJsonRet  As Object
 Local aHeader   := {}
 Local nlx       As Numeric
 Local cError    As String
@@ -176,52 +182,13 @@ If ( oRest:Post( aHeader ) )
         If ( Empty( oRest:getResult() ) )
             MsgInfo(nStatus)
         Else
-            MsgInfo(oRest:getResult())
-        EndIf
+            oJsonRet := JsonObject():New()
+            oJsonRet:FromJson( oRest:getResult() )
 
-    Else
-        MsgStop(oRest:getLastError() + CRLF + oRest:getResult())
-    EndIf
+            If ( Len( aMetaData ) > 0 )
+                ::UpMetaData( aMetaData, oJsonRet["nftId"] )
+            EndIf
 
-Else
-    MsgStop(oRest:getLastError() + CRLF + oRest:getResult())
-EndIf
-
-Return
-
-/*/{Protheus.doc} GetNftDetails
-    Metodo para buscar detalhes do NFT dado o nome do NFT
-    @author DS2U (SDA)
-    @since 04/06/2022
-    @version 1.0.0
-    @param cNftName, Char, Nome do arquivo NFT
-    @return SELF, object, Objeto instanciado da classe NFTMakerPro
-    /*/
-Method GetNftDetails( cNftName ) CLASS NFTMakerPro
-
-Local oRest     As Object
-Local aHeader   := {}
-Local cError    As String
-Local nStatus   As Numeric
-
-AADD( aHeader, "Content-Type: application/json" )
-
-// Realiza o POST para upload da NFT
-oRest := FWRest():New( ::endPoint )
-oRest:SetPath( "/GetNftDetails/" + ::apiKey + "/" + ::projectId + "/" + cNftName )
-oRest:SetChkStatus(.F.)
-
-If ( oRest:Get( aHeader ) )
-
-    cError := ""
-    nStatus := HTTPGetStatus(@cError)
-
-    If ( nStatus >= 200 .And. nStatus <= 299 )
-
-        If ( Empty( oRest:getResult() ) )
-            MsgInfo(nStatus)
-        Else
-            MsgInfo(oRest:getResult())
         EndIf
 
     Else
@@ -233,6 +200,177 @@ Else
 EndIf
 
 Return SELF
+
+/*/{Protheus.doc} GetNftDetails
+    Metodo para buscar detalhes do NFT dado o nome do NFT
+    @author DS2U (SDA)
+    @since 04/06/2022
+    @version 1.0.0
+    @param cNftName, Char, Nome do arquivo NFT
+    @return SELF, object, Objeto instanciado da classe NFTMakerPro
+    @see https://api.nft-maker.io/swagger/index.html - GetNftDetails
+    /*/
+Method GetNftDetails( cNftName ) CLASS NFTMakerPro
+
+Local oRest     As Object
+Local oJsonRet  As Object
+Local aHeader   := {}
+Local cError    As String
+Local nStatus   As Numeric
+
+AADD( aHeader, "Content-Type: application/json" )
+
+// Realiza o POST para upload da NFT
+oRest := FWRest():New( ::endPoint )
+oRest:SetPath( "/GetNftDetails/" + ::apiKey + "/" + ::projectId + "/" + cNftName )
+oRest:SetChkStatus(.F.)
+
+oJsonRet := JsonObject():New()
+
+If ( oRest:Get( aHeader ) )
+
+    cError := ""
+    nStatus := HTTPGetStatus(@cError)
+
+    If ( nStatus >= 200 .And. nStatus <= 299 )
+
+        If ( Empty( oRest:getResult() ) )
+            MsgInfo(nStatus)
+        Else
+            oJsonRet:FromJson( oRest:getResult() )
+        EndIf
+
+    Else
+        MsgStop(oRest:getLastError() + CRLF + oRest:getResult())
+    EndIf
+
+Else
+    MsgStop(oRest:getLastError() + CRLF + oRest:getResult())
+EndIf
+
+Return oJsonRet
+
+/*/{Protheus.doc} GetNftById
+    Metodo para buscar detalhes do NFT dado o ID do NFT
+    @author DS2U (SDA)
+    @since 04/06/2022
+    @version 1.0.0
+    @param nIdNft, Numeric, ID do arquivo NFT
+    @return SELF, object, Objeto instanciado da classe NFTMakerPro
+    /*/
+Method GetNftById( nIdNft ) CLASS NFTMakerPro
+
+Local oRest     As Object
+Local oJsonRet  As Object
+Local aHeader   := {}
+Local cError    As String
+Local nStatus   As Numeric
+
+AADD( aHeader, "Content-Type: application/json" )
+
+// Realiza o POST para upload da NFT
+oRest := FWRest():New( ::endPoint )
+oRest:SetPath( "/GetNftDetailsById/" + ::apiKey + "/" + ::projectId + "/" + AllTrim( cValToChar( nIdNft ) ) )
+oRest:SetChkStatus(.F.)
+
+oJsonRet := JsonObject():New()
+
+If ( oRest:Get( aHeader ) )
+
+    cError := ""
+    nStatus := HTTPGetStatus(@cError)
+
+    If ( nStatus >= 200 .And. nStatus <= 299 )
+
+        If ( Empty( oRest:getResult() ) )
+            MsgInfo(nStatus)
+        Else
+            oJsonRet:FromJson( oRest:getResult() )
+        EndIf
+
+    Else
+        MsgStop(oRest:getLastError() + CRLF + oRest:getResult())
+    EndIf
+
+Else
+    MsgStop(oRest:getLastError() + CRLF + oRest:getResult())
+EndIf
+
+Return oJsonRet
+
+/*/{Protheus.doc} UpMetaData
+    Metodo para realizar o POST de atualização de metadados do NFT
+    @type  Static Function
+    @author DS2U (SDA)
+    @since 27/05/2022
+    @version 1.0.0
+    @param aMetaData, Array, Array com os atributos para serem adicionados / alterados no metadados
+    @param nIdNft, Numeric, Id do NFT
+    @return SELF, object, Objeto instanciado da classe NFTMakerPro
+    @see https://api.nft-maker.io/swagger/index.html - UpdateMetadata
+/*/
+Method UpMetaData( aMetaData, nIdNft ) CLASS NFTMakerPro
+
+Local oRest     As Object
+Local oJsonRet  As Object
+Local aHeader   := {}
+Local cError    As String
+Local nStatus   As Numeric
+Local oNFT      := ::GetNftById( nIdNft )
+Local oMetaData := JsonObject():New()      
+Local nlx
+Local cJson As String
+
+Default aSubFiles := {}
+
+If ( ValType( oNFT ) == "J" )
+
+    oMetaData:FromJson( oNFT["metadata"] )
+
+    // Desta maneira acrescenta/altera atributos do NFT. Se precisar alterar do SubFiles, precisar descer mais o niveis nos atributos do Json
+    For nlx := 1 To Len( aMetaData )
+        oMetaData["721"][oNFT["policyid"]][oNFT["name"]][aMetaData[nlx][1]] := aMetaData[nlx][2]
+    Next nlx
+
+    oNFT["metadata"] := oMetaData:ToJson()
+
+Else
+    Alert("NFT [" + cIdNft + "] nao encontrada")
+EndIf
+
+AADD( aHeader, "Content-Type: application/json" )
+
+cJson := NftProJson( oMetaData:ToJson() ) 
+
+// Realiza o POST para upload da NFT
+oRest := FWRest():New( ::endPoint )
+oRest:SetPath( "/UpdateMetadata/" + ::apiKey + "/" + ::projectId + "/" + AllTrim( cValToChar( oNFT["id"] ) ) )
+oRest:SetPostParams( cJson )
+oRest:SetChkStatus(.F.)
+
+If ( oRest:Post( aHeader ) )
+
+    cError := ""
+    nStatus := HTTPGetStatus(@cError)
+
+    If ( nStatus >= 200 .And. nStatus <= 299 )
+
+        If ( Empty( oRest:getResult() ) )
+            MsgInfo(nStatus)
+        Else
+            oJsonRet := JsonObject():New()
+            oJsonRet:FromJson( oRest:getResult() )
+        EndIf
+
+    Else
+        MsgStop(oRest:getLastError() + CRLF + oRest:getResult())
+    EndIf
+
+Else
+    MsgStop(oRest:getLastError() + CRLF + oRest:getResult())
+EndIf
+
+Return oJsonRet
 
 /*/{Protheus.doc} GetType
     (long_description)
@@ -379,3 +517,18 @@ If ( Len( cName ) < 4 )
 EndIf
 
 Return cName
+
+/*/{Protheus.doc} NftProJson
+    Funcao para tratar o Json conforme o NFT Maker PRO espera
+    @type  Static Function
+    @author DS2U (SDA)
+    @since 04/06/2022
+    @version 1.0.0
+    @param cJson, Char, JSon a ser tratado
+    @return cJsonRet, Char, JSon tratado
+/*/
+Static Function NftProJson(cJson)
+
+Local cJsonRet := StrTran( cJson, '"', '\"' )
+
+Return cJsonRet
