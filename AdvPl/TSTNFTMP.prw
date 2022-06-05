@@ -17,6 +17,7 @@ Local oNft       As Object
 
 AADD( aSubFiles, cFileAudio )
 
+// Metadata do NFT - Adiciona ou altera
 AADD( aMetaData, { "color", "black" } )
 AADD( aMetaData, { "teste", "addTeste" } )
 

@@ -529,6 +529,6 @@ Return cName
 /*/
 Static Function NftProJson(cJson)
 
-Local cJsonRet := StrTran( cJson, '"', '\"' )
+Local cJsonRet := '{"metadata": "' + StrTran( cJson, '"', '\"' ) + '"}'
 
 Return cJsonRet
